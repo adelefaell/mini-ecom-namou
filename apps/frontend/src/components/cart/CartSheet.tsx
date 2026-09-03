@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
@@ -10,6 +11,17 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { CheckCircle2, Minus, Plus, Trash2 } from "lucide-react"
 
 interface CartSheetProps {
@@ -20,6 +32,7 @@ interface CartSheetProps {
 
 export function CartSheet({ open, onOpenChange, justAddedName }: CartSheetProps) {
   const { cart, updateItem, removeItem } = useCart()
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -84,9 +97,13 @@ export function CartSheet({ open, onOpenChange, justAddedName }: CartSheetProps)
                       <Plus className="size-3" />
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="destructive"
                       size="icon-xs"
-                      onClick={() => removeItem.mutate(item.id)}
+                      onClick={() =>
+                        item.quantity > 1
+                          ? setPendingDelete({ id: item.id, name: item.product.name })
+                          : removeItem.mutate(item.id)
+                      }
                       disabled={rowBusy}
                       aria-label={`Remove ${item.product.name}`}
                     >
@@ -119,6 +136,38 @@ export function CartSheet({ open, onOpenChange, justAddedName }: CartSheetProps)
           </Button>
           <Button render={<Link to="/cart" />}>View Cart →</Button>
         </SheetFooter>
+
+        <AlertDialog
+          open={pendingDelete != null}
+          onOpenChange={(open) => {
+            if (!open) setPendingDelete(null)
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogMedia>
+                <Trash2 className="size-4" />
+              </AlertDialogMedia>
+              <AlertDialogTitle>Remove item?</AlertDialogTitle>
+              <AlertDialogDescription>
+                All {pendingDelete?.name} quantities will be removed from your cart. This can&apos;t
+                be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => {
+                  if (pendingDelete) removeItem.mutate(pendingDelete.id)
+                  setPendingDelete(null)
+                }}
+              >
+                Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   )

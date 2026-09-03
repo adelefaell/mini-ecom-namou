@@ -95,7 +95,7 @@ export default function Wishlist() {
                     Move to cart
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="destructive"
                     size="icon"
                     onClick={() => removeItem.mutate(item.id)}
                     disabled={rowBusy}

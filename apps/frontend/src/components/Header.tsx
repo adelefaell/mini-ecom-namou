@@ -1,8 +1,10 @@
+import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/use-auth"
 import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { Button } from "@/components/ui/button"
+import { CartSheet } from "@/components/cart/CartSheet"
 import { Heart, ShoppingCart } from "lucide-react"
 
 export default function Header() {
@@ -10,6 +12,7 @@ export default function Header() {
   const { count } = useCart()
   const { wishlist } = useWishlist()
   const navigate = useNavigate()
+  const [cartSheetOpen, setCartSheetOpen] = useState(false)
 
   async function handleLogout() {
     await logout()
@@ -28,7 +31,11 @@ export default function Header() {
               <Heart className="size-4" />
               Wishlist{wishlist.items.length > 0 ? ` (${wishlist.items.length})` : ""}
             </Button>
-            <Button variant="ghost" size="sm" render={<Link to="/cart" />}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCartSheetOpen(true)}
+            >
               <ShoppingCart className="size-4" />
               Cart{count > 0 ? ` (${count})` : ""}
             </Button>
@@ -43,6 +50,8 @@ export default function Header() {
           </Button>
         )}
       </div>
+
+      <CartSheet open={cartSheetOpen} onOpenChange={setCartSheetOpen} />
     </header>
   )
 }

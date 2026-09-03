@@ -20,7 +20,7 @@ export default function ProductDetail() {
   const productId = id ? Number(id) : undefined
   const { data: product, isLoading, isError } = useProduct(productId)
   const { user } = useAuth()
-  const { addItem } = useCart()
+  const { addItem, cart } = useCart()
   const { wishlist, addItem: addWishlistItem } = useWishlist()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -66,10 +66,13 @@ export default function ProductDetail() {
     }
     if (!selectedVariant || selectedVariant.stock <= 0) return
 
+    const openSheet = cart.items.length === 0
     const addedName = product!.name
     await addItem.mutateAsync({ variantId: selectedVariant.id, quantity: 1 })
-    setSheetOpen(true)
-    setJustAdded(addedName)
+    if (openSheet) {
+      setJustAdded(addedName)
+      setSheetOpen(true)
+    }
 
     queryClient.setQueryData<ProductWithVariantsDto>(["products", productId], (current) => {
       if (!current) return current

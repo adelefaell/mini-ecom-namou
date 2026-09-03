@@ -140,7 +140,7 @@ export default function Cart() {
                 <div className="flex flex-col items-end gap-2">
                   <span className="font-medium">${(item.variant.price * item.quantity).toFixed(2)}</span>
                   <Button
-                    variant="ghost"
+                    variant="destructive"
                     size="icon"
                     onClick={() =>
                       item.quantity > 1

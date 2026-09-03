@@ -52,14 +52,35 @@ const product = {
 
 function authedHandlers() {
   let stock = 5
+  let items: {
+    id: number
+    variantId: number
+    quantity: number
+    variant: { id: number; sku: string; name: string; price: number }
+    product: { id: number; slug: string; name: string; imageUrl: string }
+  }[] = []
+  const cart = () => ({
+    items,
+    total: items.reduce((s, i) => s + i.variant.price * i.quantity, 0),
+  })
   return {
     "GET /api/auth/me": async () => ({ id: 1, email: "demo@mini-ecom.dev", name: "Demo User" }),
     "GET /api/products/1": async () => ({ ...product, variants: [{ ...product.variants[0], stock }] }),
-    "GET /api/cart": async () => ({ items: [], total: 0 }),
+    "GET /api/cart": async () => cart(),
     "GET /api/wishlist": async () => ({ items: [] }),
     "POST /api/cart/items": async () => {
       stock -= 1
-      return { items: [], total: 0 }
+      const v = product.variants[0]!
+      items = [
+        {
+          id: 1,
+          variantId: 11,
+          quantity: 1,
+          variant: { id: v.id, sku: v.sku, name: v.name, price: v.price },
+          product,
+        },
+      ]
+      return cart()
     },
   }
 }
@@ -81,7 +102,29 @@ describe("ProductDetail", () => {
 
     const adds = calls.filter((c) => c === "POST /api/cart/items")
     expect(adds).toHaveLength(2)
+
+    await user.click(await screen.findByRole("button", { name: "Continue Shopping" }))
     expect(await screen.findByText("3 in stock")).toBeInTheDocument()
+  })
+
+  it("opens the sheet on the first add to an empty cart but not on later adds", async () => {
+    const calls: unknown[] = []
+    stubFetch(authedHandlers(), calls)
+    const user = userEvent.setup()
+    renderWithProviders()
+
+    expect(await screen.findByText("5 in stock")).toBeInTheDocument()
+    const button = screen.getByRole("button", { name: "Add to cart" })
+
+    await user.click(button)
+    expect(await screen.findByRole("button", { name: "Continue Shopping" })).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Continue Shopping" }))
+
+    await user.click(button)
+    expect(screen.queryByRole("button", { name: "Continue Shopping" })).not.toBeInTheDocument()
+
+    const adds = calls.filter((c) => c === "POST /api/cart/items")
+    expect(adds).toHaveLength(2)
   })
 
   it("disables the button and shows Out of stock when stock reaches zero", async () => {
