@@ -1,7 +1,14 @@
 import { db } from "./client"
-import { products, variants } from "./schema"
+import { products, users, variants } from "./schema"
 import { seedData } from "./seed-data"
 import { eq } from "drizzle-orm"
+import { hashSync } from "bcryptjs"
+
+const demoUser = {
+  email: "demo@mini-ecom.dev",
+  name: "Demo User",
+  password: "demo-password",
+}
 
 async function upsertProduct(item: (typeof seedData)[number]) {
   const existing = db
@@ -33,6 +40,16 @@ async function upsertProduct(item: (typeof seedData)[number]) {
 export async function seed() {
   for (const item of seedData) {
     await upsertProduct(item)
+  }
+  const existing = db.select({ id: users.id }).from(users).where(eq(users.email, demoUser.email)).get()
+  if (!existing) {
+    db.insert(users)
+      .values({
+        email: demoUser.email,
+        name: demoUser.name,
+        passwordHash: hashSync(demoUser.password, 10),
+      })
+      .run()
   }
   const count = db.select({ id: products.id }).from(products).all().length
   return count

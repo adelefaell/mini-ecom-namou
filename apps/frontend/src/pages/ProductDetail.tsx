@@ -1,16 +1,23 @@
 import { useState } from "react"
-import { Link, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { useProduct } from "@/hooks/use-products"
+import { useAuth } from "@/hooks/use-auth"
+import { useCart } from "@/hooks/use-cart"
+import { useWishlist } from "@/hooks/use-wishlist"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Check } from "lucide-react"
+import { ArrowLeft, Check, Heart } from "lucide-react"
 
 export default function ProductDetail() {
   const { id } = useParams()
   const productId = id ? Number(id) : undefined
   const { data: product, isLoading, isError } = useProduct(productId)
+  const { user } = useAuth()
+  const { addItem, isPending: isCartPending } = useCart()
+  const { wishlist, addItem: addWishlistItem } = useWishlist()
+  const navigate = useNavigate()
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
 
   if (isError || (productId != null && Number.isNaN(productId))) {
@@ -43,6 +50,27 @@ export default function ProductDetail() {
 
   const selectedVariant =
     product.variants.find((v) => v.id === selectedVariantId) ?? product.variants[0]
+
+  async function handleAddToCart() {
+    if (!user) {
+      navigate("/login")
+      return
+    }
+    if (!selectedVariant) return
+    await addItem.mutateAsync({ variantId: selectedVariant.id, quantity: 1 })
+  }
+
+  async function handleAddToWishlist() {
+    if (!user) {
+      navigate("/login")
+      return
+    }
+    if (!selectedVariant) return
+    await addWishlistItem.mutateAsync({ variantId: selectedVariant.id })
+  }
+
+  const isWishlisted =
+    selectedVariant != null && wishlist.items.some((i) => i.variantId === selectedVariant.id)
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
@@ -99,6 +127,25 @@ export default function ProductDetail() {
                   </Badge>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">SKU: {selectedVariant.sku}</p>
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    className="flex-1"
+                    onClick={handleAddToCart}
+                    disabled={isCartPending}
+                  >
+                    {user ? "Add to cart" : "Sign in to add to cart"}
+                  </Button>
+                  {user && (
+                    <Button
+                      variant={isWishlisted ? "secondary" : "outline"}
+                      onClick={handleAddToWishlist}
+                      disabled={isWishlisted}
+                    >
+                      <Heart className="size-4" />
+                      {isWishlisted ? "Saved" : "Save"}
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}

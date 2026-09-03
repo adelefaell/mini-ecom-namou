@@ -1,11 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 import { migrate } from "drizzle-orm/better-sqlite3/migrator"
 import { db } from "../db/client"
-import { products, variants } from "../db/schema"
+import { cartItems, orderItems, orders, products, variants, wishlistItems } from "../db/schema"
 import { buildApp } from "../app"
 import type { FastifyInstance } from "fastify"
 
 async function resetDb() {
+  db.delete(orderItems).run()
+  db.delete(orders).run()
+  db.delete(cartItems).run()
+  db.delete(wishlistItems).run()
   db.delete(variants).run()
   db.delete(products).run()
 }

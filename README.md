@@ -1,159 +1,73 @@
-# Turborepo starter
+# Mini E-Com
 
-This Turborepo starter is maintained by the Turborepo core team.
+A small full-stack storefront: Fastify + SQLite backend, React + Vite frontend, shared Zod DTOs. Auth via JWT in an httpOnly cookie; catalogue, cart, wishlist, and a mocked checkout flow.
 
-## Using this example
+## Stack
 
-Run the following command:
+- **Monorepo:** pnpm workspaces + Turborepo
+- **Backend** (`apps/backend`): Fastify 5, Drizzle ORM, better-sqlite3, zod, jose (JWT), bcryptjs
+- **Frontend** (`apps/frontend`): React 19, Vite, TanStack Query, React Router, Tailwind CSS 4, shadcn/ui-style Base UI components
+- **Shared** (`packages/shared-types`): Zod schemas + inferred types used by both apps
+- **Tests:** Vitest (backend integration, frontend component) + Playwright (e2e, optional)
 
-```sh
-npx create-turbo@latest
-```
+## Demo account
 
-## What's inside?
+| email | password |
+| --- | --- |
+| `demo@mini-ecom.dev` | `demo-password` |
 
-This Turborepo includes the following packages/apps:
+## Setup
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `@next/eslint-plugin-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Requires Node 24 and pnpm 11.
 
 ```sh
-cd my-turborepo
-turbo build
+pnpm install
 ```
 
-Without global `turbo`, use your package manager:
+### Run locally
 
 ```sh
-cd my-turborepo
-npx turbo build
-pnpm exec turbo build
-pnpm exec turbo build
+pnpm dev
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+- Backend: http://localhost:3001 (Vite proxies `/api` to it)
+- Frontend: http://localhost:3002
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Seed the demo user and catalogue:
 
 ```sh
-turbo build --filter=docs
+pnpm --filter backend db:migrate
+pnpm --filter backend db:seed
 ```
 
-Without global `turbo`:
+### Run with Docker
 
 ```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+docker compose up --build
 ```
 
-### Develop
+Serves backend on `:3001`, frontend on `:3002`. The SQLite database persists in the `mini-ecom-data` volume. Migrations and seeding run automatically on container start.
 
-To develop all apps and packages, run the following command:
+## Scripts
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+| command | what |
+| --- | --- |
+| `pnpm dev` | run both apps in watch mode |
+| `pnpm build` | typecheck + production build |
+| `pnpm test` | run all Vitest suites |
+| `pnpm lint` | oxlint across the repo |
+| `pnpm check-types` | `tsc --noEmit` everywhere |
 
-```sh
-cd my-turborepo
-turbo dev
-```
+Backend-only helpers live in `apps/backend`: `db:generate`, `db:migrate`, `db:seed`.
 
-Without global `turbo`, use your package manager:
+## Features
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+- Public catalogue (list + detail with variants)
+- Sign in / sign out (single demo user; JWT in httpOnly `SameSite=Lax` cookie)
+- Auth-gated cart (add, quantity, change variant, remove) and wishlist (save, remove, move-to-cart)
+- Checkout: review cart, place a mocked order, see confirmation
+- Backend routes require auth where ownership matters; catalogue stays public
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## CI
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+GitHub Actions workflow (`.github/workflows/ci.yml`) runs lint, typecheck, and tests on every push to `main`/`dev` and on pull requests.

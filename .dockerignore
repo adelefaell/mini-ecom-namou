@@ -1,0 +1,8 @@
+node_modules
+.git
+.scratch
+*.db
+apps/backend/data
+apps/frontend/dist
+apps/frontend/test-results
+apps/frontend/playwright-report

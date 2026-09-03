@@ -1,17 +1,27 @@
 import Fastify, { type FastifyInstance } from "fastify"
 import cors from "@fastify/cors"
+import cookie from "@fastify/cookie"
 import { ZodError } from "zod"
 import { productRoutes } from "./routes/products"
+import { authRoutes } from "./routes/auth"
+import { cartRoutes } from "./routes/cart"
+import { wishlistRoutes } from "./routes/wishlist"
+import { orderRoutes } from "./routes/orders"
 
 async function apiRoutes(app: FastifyInstance) {
   app.get("/health", async () => ({ status: "ok" }))
+  app.register(authRoutes)
+  app.register(cartRoutes)
+  app.register(wishlistRoutes)
+  app.register(orderRoutes)
   app.register(productRoutes)
 }
 
 export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: true })
 
-  app.register(cors, { origin: true })
+  app.register(cors, { origin: true, credentials: true })
+  app.register(cookie)
   app.register(apiRoutes, { prefix: "/api" })
 
   app.setErrorHandler((error, request, reply) => {
