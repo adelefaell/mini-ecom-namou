@@ -1,7 +1,28 @@
 import { db } from "../db/client"
 import { cartItems, variants, products } from "../db/schema"
-import { and, asc, eq } from "drizzle-orm"
+import { and, asc, eq, sql } from "drizzle-orm"
 import type { CartDto } from "@repo/shared-types"
+
+type Db = typeof db
+type Tx = { select: Db["select"]; insert: Db["insert"]; update: Db["update"]; delete: Db["delete"] }
+
+export class VariantNotFoundError extends Error {
+  constructor(message = "Variant not found") {
+    super(message)
+  }
+}
+
+export class InsufficientStockError extends Error {
+  constructor(message = "Not enough stock for the requested quantity") {
+    super(message)
+  }
+}
+
+export class CartItemNotFoundError extends Error {
+  constructor(message = "Cart item not found") {
+    super(message)
+  }
+}
 
 export async function getCart(userId: number): Promise<CartDto> {
   const rows = db
@@ -39,36 +60,112 @@ export async function getCart(userId: number): Promise<CartDto> {
   return { items, total }
 }
 
-export async function addItem(userId: number, variantId: number, quantity: number) {
-  const existing = db
-    .select({ id: cartItems.id })
-    .from(cartItems)
-    .where(and(eq(cartItems.userId, userId), eq(cartItems.variantId, variantId)))
-    .get()
-
-  if (existing) {
-    await db
-      .update(cartItems)
-      .set({ quantity: quantity })
-      .where(eq(cartItems.id, existing.id))
-  } else {
-    await db.insert(cartItems).values({ userId, variantId, quantity }).run()
-  }
+function getVariant(tx: Tx, id: number) {
+  return tx.select().from(variants).where(eq(variants.id, id)).get()
 }
 
-export async function updateItem(userId: number, itemId: number, patch: { quantity?: number; variantId?: number }) {
-  const result = await db
-    .update(cartItems)
-    .set(patch)
-    .where(and(eq(cartItems.id, itemId), eq(cartItems.userId, userId)))
+function addStock(tx: Tx, variantId: number, quantity: number) {
+  return tx
+    .update(variants)
+    .set({ stock: sql`${variants.stock} + ${quantity}` })
+    .where(eq(variants.id, variantId))
     .run()
-  return result.changes > 0
 }
 
-export async function removeItem(userId: number, itemId: number) {
-  const result = await db
-    .delete(cartItems)
-    .where(and(eq(cartItems.id, itemId), eq(cartItems.userId, userId)))
-    .run()
-  return result.changes > 0
+function takeStock(tx: Tx, variantId: number, quantity: number) {
+  return addStock(tx, variantId, -quantity)
+}
+
+export function addItem(userId: number, variantId: number, quantity: number) {
+  return db.transaction((tx) => {
+    const variant = getVariant(tx, variantId)
+    if (!variant) throw new VariantNotFoundError()
+
+    const existing = tx
+      .select({ id: cartItems.id, quantity: cartItems.quantity })
+      .from(cartItems)
+      .where(and(eq(cartItems.userId, userId), eq(cartItems.variantId, variantId)))
+      .get()
+
+    const newQuantity = (existing?.quantity ?? 0) + quantity
+    if (variant.stock < quantity) throw new InsufficientStockError()
+
+    takeStock(tx, variantId, quantity)
+
+    if (existing) {
+      tx.update(cartItems).set({ quantity: newQuantity }).where(eq(cartItems.id, existing.id)).run()
+    } else {
+      tx.insert(cartItems).values({ userId, variantId, quantity }).run()
+    }
+  })
+}
+
+export function updateItem(
+  userId: number,
+  itemId: number,
+  patch: { quantity?: number; variantId?: number },
+) {
+  return db.transaction((tx) => {
+    const item = tx
+      .select()
+      .from(cartItems)
+      .where(and(eq(cartItems.id, itemId), eq(cartItems.userId, userId)))
+      .get()
+    if (!item) throw new CartItemNotFoundError()
+
+    const currentVariant = getVariant(tx, item.variantId)
+    if (!currentVariant) throw new VariantNotFoundError()
+
+    let targetVariantId = item.variantId
+    let targetVariant = currentVariant
+    if (patch.variantId != null && patch.variantId !== item.variantId) {
+      const next = getVariant(tx, patch.variantId)
+      if (!next) throw new VariantNotFoundError()
+      targetVariantId = patch.variantId
+      targetVariant = next
+    }
+
+    const newQuantity = patch.quantity ?? item.quantity
+    if (newQuantity < 1) {
+      throw new RangeError("Quantity must be at least 1")
+    }
+
+    if (targetVariantId === item.variantId) {
+      if (currentVariant.stock + item.quantity < newQuantity) {
+        throw new InsufficientStockError()
+      }
+      tx.update(cartItems)
+        .set({ quantity: newQuantity })
+        .where(eq(cartItems.id, item.id))
+        .run()
+      takeStock(tx, item.variantId, newQuantity - item.quantity)
+    } else {
+      if (targetVariant.stock < newQuantity) {
+        throw new InsufficientStockError()
+      }
+      addStock(tx, currentVariant.id, item.quantity)
+      takeStock(tx, targetVariantId, newQuantity)
+      tx.update(cartItems)
+        .set({ quantity: newQuantity, variantId: targetVariantId })
+        .where(eq(cartItems.id, item.id))
+        .run()
+    }
+
+    return true
+  })
+}
+
+export function removeItem(userId: number, itemId: number) {
+  return db.transaction((tx) => {
+    const item = tx
+      .select()
+      .from(cartItems)
+      .where(and(eq(cartItems.id, itemId), eq(cartItems.userId, userId)))
+      .get()
+    if (!item) throw new CartItemNotFoundError()
+
+    tx.delete(cartItems).where(eq(cartItems.id, item.id)).run()
+    addStock(tx, item.variantId, item.quantity)
+    return true
+  })
 }

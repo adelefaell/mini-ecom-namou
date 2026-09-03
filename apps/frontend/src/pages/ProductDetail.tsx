@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { useProduct } from "@/hooks/use-products"
 import { useAuth } from "@/hooks/use-auth"
 import { useCart } from "@/hooks/use-cart"
@@ -9,14 +10,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Check, Heart } from "lucide-react"
+import type { ProductWithVariantsDto } from "@repo/shared-types"
 
 export default function ProductDetail() {
   const { id } = useParams()
   const productId = id ? Number(id) : undefined
   const { data: product, isLoading, isError } = useProduct(productId)
   const { user } = useAuth()
-  const { addItem, isPending: isCartPending } = useCart()
+  const { addItem } = useCart()
   const { wishlist, addItem: addWishlistItem } = useWishlist()
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
 
@@ -56,8 +59,20 @@ export default function ProductDetail() {
       navigate("/login")
       return
     }
-    if (!selectedVariant) return
+    if (!selectedVariant || selectedVariant.stock <= 0) return
     await addItem.mutateAsync({ variantId: selectedVariant.id, quantity: 1 })
+
+    queryClient.setQueryData<ProductWithVariantsDto>(["products", productId], (current) => {
+      if (!current) return current
+      return {
+        ...current,
+        variants: current.variants.map((variant) =>
+          variant.id === selectedVariant.id
+            ? { ...variant, stock: Math.max(0, variant.stock - 1) }
+            : variant,
+        ),
+      }
+    })
   }
 
   async function handleAddToWishlist() {
@@ -71,6 +86,8 @@ export default function ProductDetail() {
 
   const isWishlisted =
     selectedVariant != null && wishlist.items.some((i) => i.variantId === selectedVariant.id)
+
+  const isAddDisabled = selectedVariant == null || selectedVariant.stock <= 0
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
@@ -131,9 +148,13 @@ export default function ProductDetail() {
                   <Button
                     className="flex-1"
                     onClick={handleAddToCart}
-                    disabled={isCartPending}
+                    disabled={isAddDisabled}
                   >
-                    {user ? "Add to cart" : "Sign in to add to cart"}
+                    {!user
+                      ? "Sign in to add to cart"
+                      : selectedVariant.stock > 0
+                        ? "Add to cart"
+                        : "Out of stock"}
                   </Button>
                   {user && (
                     <Button

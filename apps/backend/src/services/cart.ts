@@ -1,6 +1,10 @@
 import * as cartRepository from "../repositories/cart"
 import type { CartDto } from "@repo/shared-types"
 
+export const VariantNotFoundError = cartRepository.VariantNotFoundError
+export const InsufficientStockError = cartRepository.InsufficientStockError
+export const CartItemNotFoundError = cartRepository.CartItemNotFoundError
+
 export function getCart(userId: number): Promise<CartDto> {
   return cartRepository.getCart(userId)
 }

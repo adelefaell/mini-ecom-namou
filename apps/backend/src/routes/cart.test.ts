@@ -4,6 +4,7 @@ import { hashSync } from "bcryptjs"
 import { db } from "../db/client"
 import { cartItems, products, users, variants } from "../db/schema"
 import { buildApp } from "../app"
+import { eq } from "drizzle-orm"
 import type { FastifyInstance } from "fastify"
 
 async function resetDb() {
@@ -18,6 +19,8 @@ describe("cart", () => {
   let teeVariantId: number
   let teeLargeVariantId: number
   let hoodieVariantId: number
+  let socksVariantId: number
+  let capVariantId: number
   let cookie: string
 
   beforeAll(async () => {
@@ -72,6 +75,40 @@ describe("cart", () => {
       .returning({ id: variants.id })
       .get()
     hoodieVariantId = hoodieVariant.id
+
+    const socks = db
+      .insert(products)
+      .values({
+        slug: "test-socks",
+        name: "Test Socks",
+        description: "A test product",
+        imageUrl: "https://example.com/socks.jpg",
+      })
+      .returning({ id: products.id })
+      .get()
+    const socksVariant = db
+      .insert(variants)
+      .values({ productId: socks.id, sku: "SCK-T", name: "One Size", price: 4.99, stock: 10 })
+      .returning({ id: variants.id })
+      .get()
+    socksVariantId = socksVariant.id
+
+    const cap = db
+      .insert(products)
+      .values({
+        slug: "test-cap",
+        name: "Test Cap",
+        description: "A test product",
+        imageUrl: "https://example.com/cap.jpg",
+      })
+      .returning({ id: products.id })
+      .get()
+    const capVariant = db
+      .insert(variants)
+      .values({ productId: cap.id, sku: "CAP-OS", name: "One Size", price: 12.99, stock: 1 })
+      .returning({ id: variants.id })
+      .get()
+    capVariantId = capVariant.id
 
     const login = await app.inject({
       method: "POST",
@@ -189,5 +226,86 @@ describe("cart", () => {
       payload: { variantId: 9999, quantity: 1 },
     })
     expect(res.statusCode).toBe(404)
+  })
+
+  function stockOf(variantId: number) {
+    return db.select({ stock: variants.stock }).from(variants).where(eq(variants.id, variantId)).get()!.stock
+  }
+
+  it("increments an existing cart row on repeat add and decrements stock", async () => {
+    const first = await app.inject({
+      method: "POST",
+      url: "/api/cart/items",
+      headers: { cookie },
+      payload: { variantId: socksVariantId, quantity: 1 },
+    })
+    expect(first.statusCode).toBe(201)
+    expect(stockOf(socksVariantId)).toBe(9)
+
+    const second = await app.inject({
+      method: "POST",
+      url: "/api/cart/items",
+      headers: { cookie },
+      payload: { variantId: socksVariantId, quantity: 1 },
+    })
+    expect(second.statusCode).toBe(201)
+    const socksItem = second.json().items.find((i: { variantId: number }) => i.variantId === socksVariantId)
+    expect(socksItem.quantity).toBe(2)
+    expect(stockOf(socksVariantId)).toBe(8)
+  })
+
+  it("restores stock when an item is removed", async () => {
+    const cart = await app.inject({ method: "GET", url: "/api/cart", headers: { cookie } })
+    const socksItem = cart.json().items.find((i: { variantId: number }) => i.variantId === socksVariantId)
+
+    const res = await app.inject({
+      method: "DELETE",
+      url: `/api/cart/items/${socksItem.id}`,
+      headers: { cookie },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(stockOf(socksVariantId)).toBe(10)
+  })
+
+  it("restores stock when an item quantity is decreased", async () => {
+    await app.inject({
+      method: "POST",
+      url: "/api/cart/items",
+      headers: { cookie },
+      payload: { variantId: socksVariantId, quantity: 3 },
+    })
+    expect(stockOf(socksVariantId)).toBe(7)
+
+    const cart = await app.inject({ method: "GET", url: "/api/cart", headers: { cookie } })
+    const socksItem = cart.json().items.find((i: { variantId: number }) => i.variantId === socksVariantId)
+
+    const res = await app.inject({
+      method: "PATCH",
+      url: `/api/cart/items/${socksItem.id}`,
+      headers: { cookie },
+      payload: { quantity: 1 },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(stockOf(socksVariantId)).toBe(9)
+  })
+
+  it("returns 409 and makes no cart change when stock is insufficient", async () => {
+    await app.inject({
+      method: "POST",
+      url: "/api/cart/items",
+      headers: { cookie },
+      payload: { variantId: capVariantId, quantity: 1 },
+    })
+    expect(stockOf(capVariantId)).toBe(0)
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/api/cart/items",
+      headers: { cookie },
+      payload: { variantId: capVariantId, quantity: 1 },
+    })
+    expect(res.statusCode).toBe(409)
+    expect(res.json().error.message).toMatch(/stock/i)
+    expect(stockOf(capVariantId)).toBe(0)
   })
 })
