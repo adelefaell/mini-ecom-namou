@@ -4,6 +4,11 @@ import { seedData } from "./seed-data"
 import { eq } from "drizzle-orm"
 import { hashSync } from "bcryptjs"
 
+// NOTE: This is a development-only seed credential. The password is intentionally
+// plaintext here so the demo account is reproducible out of the box. If this seed
+// ever needs to run against a shared or production-like environment, move the
+// credential into environment configuration (e.g. .env via the existing `env`
+// schema in src/env.ts) and keep the password out of version control.
 const demoUser = {
   email: "demo@mini-ecom.dev",
   name: "Demo User",
