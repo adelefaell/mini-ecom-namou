@@ -8,7 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "oxlint",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"

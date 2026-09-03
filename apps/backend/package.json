@@ -9,7 +9,7 @@
     "start": "tsx src/server.ts",
     "start:prod": "drizzle-kit migrate && tsx src/db/seed.ts && tsx src/server.ts",
     "lint": "oxlint",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc -b",
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",

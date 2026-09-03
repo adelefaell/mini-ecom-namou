@@ -22,6 +22,9 @@ out
 build
 .vite
 
+# TypeScript incremental build info
+*.tsbuildinfo
+
 # Databases
 *.db
 *.db-journal
