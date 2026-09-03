@@ -102,7 +102,7 @@ describe("Checkout", () => {
     expect(await screen.findByText("Test Tee")).toBeInTheDocument()
     expect(screen.getByText("Checkout")).toBeInTheDocument()
     expect(screen.getByRole("button", { name: "Place order" })).toBeInTheDocument()
-    expect(screen.getAllByText("$19.98")).toHaveLength(2)
+    expect(screen.getAllByText("$19.98")).toHaveLength(3)
   })
 
   it("places an order and shows the confirmation summary", async () => {

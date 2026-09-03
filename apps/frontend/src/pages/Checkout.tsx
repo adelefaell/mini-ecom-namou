@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { SkeletonImage } from "@/components/ui/skeleton-image"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { CheckCircle2, ShoppingBag } from "lucide-react"
+import { CheckCircle2, Lock, ShoppingBag } from "lucide-react"
 
 function CheckoutSkeleton() {
   return (
@@ -103,48 +103,74 @@ export default function Checkout() {
     )
   }
 
-  return (
-    <div className="container mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Checkout</h1>
-      <div className="mt-6 space-y-4">
-        {cart.items.map((item) => (
-          <Card key={item.id}>
-            <CardContent className="flex items-center gap-4 p-4">
-              <SkeletonImage
-                src={item.product.imageUrl}
-                alt={item.product.name}
-                loading="lazy"
-                className="h-20 w-20 shrink-0 rounded-lg"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">{item.product.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {item.variant.name} × {item.quantity}
-                </p>
+return (
+    <div className="container mx-auto max-w-5xl px-4 py-8">
+      <header className="mb-6">
+        <h1 className="text-3xl font-semibold tracking-tight">Checkout</h1>
+        <p className="mt-1 text-muted-foreground">Review your order before placing it.</p>
+      </header>
+
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <span>1 · Review order</span>
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-foreground">2 · Confirmation</span>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_20rem]">
+        <div>
+          <h2 className="text-sm font-medium">Items ({cart.items.length})</h2>
+          <ul className="mt-3 divide-y">
+            {cart.items.map((item) => (
+              <li key={item.id} className="flex items-center gap-4 py-4">
+                <SkeletonImage
+                  src={item.product.imageUrl}
+                  alt={item.product.name}
+                  loading="lazy"
+                  className="h-16 w-16 shrink-0 rounded-lg"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{item.product.name}</p>
+                  <p className="mt-0.5 text-sm text-muted-foreground">
+                    {item.variant.name} × {item.quantity}
+                  </p>
+                </div>
+                <span className="font-medium">
+                  ${(item.variant.price * item.quantity).toFixed(2)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <aside className="h-fit rounded-xl border bg-muted/40 p-5 lg:sticky lg:top-4">
+          <h2 className="text-sm font-medium">Order summary</h2>
+          <dl className="mt-3 space-y-2 text-sm">
+            {cart.items.map((item) => (
+              <div key={item.id} className="flex items-center justify-between text-muted-foreground">
+                <dt>
+                  {item.product.name} × {item.quantity}
+                </dt>
+                <dd>${(item.variant.price * item.quantity).toFixed(2)}</dd>
               </div>
-              <span className="font-medium">
-                ${(item.variant.price * item.quantity).toFixed(2)}
-              </span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="mt-6 flex items-center justify-between rounded-xl border p-4">
-        <span className="font-medium">Total</span>
-        <span className="text-2xl font-semibold">${cart.total.toFixed(2)}</span>
-      </div>
-
-      <div className="mt-6">
-        <Button
-          className="w-full"
-          size="lg"
-          onClick={() => placeOrder.mutate()}
-          disabled={placeOrder.isPending}
-        >
-          {placeOrder.isPending ? <Spinner /> : null}
-          {placeOrder.isPending ? "Placing order..." : "Place order"}
-        </Button>
+            ))}
+          </dl>
+          <div className="mt-4 flex items-center justify-between border-t pt-4">
+            <span className="font-medium">Total</span>
+            <span className="text-2xl font-semibold">${cart.total.toFixed(2)}</span>
+          </div>
+          <Button
+            className="mt-5 w-full"
+            size="lg"
+            onClick={() => placeOrder.mutate()}
+            disabled={placeOrder.isPending}
+          >
+            {placeOrder.isPending ? <Spinner /> : <Lock className="size-4" />}
+            {placeOrder.isPending ? "Placing order..." : "Place order"}
+          </Button>
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Mock checkout — no payment is processed.
+          </p>
+        </aside>
       </div>
     </div>
   )
