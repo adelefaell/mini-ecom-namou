@@ -19,8 +19,7 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
+import { Minus, Plus, Trash2 } from "lucide-react"
 
 function CartSkeleton() {
   return (
@@ -55,18 +54,11 @@ export default function Cart() {
 
   if (cart.items.length === 0) {
     return (
-      <div className="container mx-auto max-w-3xl px-4 py-12">
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ShoppingBag className="size-4" />
-            </EmptyMedia>
-            <EmptyTitle>Your cart is empty</EmptyTitle>
-            <EmptyDescription>
-              <Link to="/">Browse the catalogue</Link> and add something you like.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+      <div className="container mx-auto max-w-3xl px-4 py-20 text-center">
+        <h1 className="text-2xl font-semibold">Your cart is empty</h1>
+        <Link to="/" className="mt-4 inline-block text-primary underline-offset-4 hover:underline">
+          Browse the catalogue
+        </Link>
       </div>
     )
   }

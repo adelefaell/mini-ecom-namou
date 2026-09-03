@@ -20,6 +20,7 @@ async function apiRoutes(app: FastifyInstance) {
 export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: true })
 
+  app.get("/health", async () => ({ status: "ok" }))
   app.register(cors, { origin: true, credentials: true })
   app.register(cookie)
   app.register(apiRoutes, { prefix: "/api" })

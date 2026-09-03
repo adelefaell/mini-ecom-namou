@@ -6,8 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SkeletonImage } from "@/components/ui/skeleton-image"
 import { Spinner } from "@/components/ui/spinner"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { Heart, ShoppingCart, Trash2 } from "lucide-react"
+import { ShoppingCart, Trash2 } from "lucide-react"
 
 function WishlistSkeleton() {
   return (
@@ -40,18 +39,11 @@ export default function Wishlist() {
 
   if (wishlist.items.length === 0) {
     return (
-      <div className="container mx-auto max-w-3xl px-4 py-12">
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Heart className="size-4" />
-            </EmptyMedia>
-            <EmptyTitle>Your wishlist is empty</EmptyTitle>
-            <EmptyDescription>
-              <Link to="/">Browse the catalogue</Link> and save things you love.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
+      <div className="container mx-auto max-w-3xl px-4 py-20 text-center">
+        <h1 className="text-2xl font-semibold">Your wishlist is empty</h1>
+        <Link to="/" className="mt-4 inline-block text-primary underline-offset-4 hover:underline">
+          Browse the catalogue
+        </Link>
       </div>
     )
   }
