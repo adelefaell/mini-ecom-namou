@@ -33,7 +33,7 @@ export default function Header() {
               Cart{count > 0 ? ` (${count})` : ""}
             </Button>
             <span className="text-sm text-muted-foreground">{user.name}</span>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
+            <Button variant="destructive" size="sm" onClick={handleLogout}>
               Log out
             </Button>
           </div>

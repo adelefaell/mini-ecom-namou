@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { useAuth } from "@/hooks/use-auth"
 import { useCart } from "@/hooks/use-cart"
@@ -6,6 +7,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react"
 
@@ -26,6 +38,7 @@ export default function Cart() {
   const { user, isPending: isAuthPending } = useAuth()
   const { cart, updateItem, removeItem, isPending } = useCart()
   const { data: products } = useProducts()
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; name: string } | null>(null)
 
   if (isAuthPending) {
     return <CartSkeleton />
@@ -127,7 +140,11 @@ export default function Cart() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeItem.mutate(item.id)}
+                    onClick={() =>
+                      cart.items.length > 1
+                        ? setPendingDelete({ id: item.id, name: item.product.name })
+                        : removeItem.mutate(item.id)
+                    }
                     disabled={rowBusy}
                     aria-label={`Remove ${item.product.name}`}
                   >
@@ -150,6 +167,37 @@ export default function Cart() {
           Checkout
         </Button>
       </div>
+
+      <AlertDialog
+        open={pendingDelete != null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <Trash2 className="size-4" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Remove item?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.name} will be removed from your cart. This can&apos;t be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (pendingDelete) removeItem.mutate(pendingDelete.id)
+                setPendingDelete(null)
+              }}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

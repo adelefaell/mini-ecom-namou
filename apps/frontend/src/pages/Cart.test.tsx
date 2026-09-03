@@ -138,4 +138,37 @@ describe("Cart", () => {
     await user.click(removeButton)
     expect(await screen.findByText("Your cart is empty")).toBeInTheDocument()
   })
+
+  it("confirms removal via alert dialog when the cart has multiple items", async () => {
+    const multiPayload = {
+      items: [
+        cartPayload.items[0],
+        {
+          ...cartPayload.items[0],
+          id: 2,
+          variantId: 22,
+          variant: { ...cartPayload.items[0].variant, id: 22, sku: "HDY-T-M", name: "Medium", price: 49.99 },
+          product: { ...cartPayload.items[0].product, id: 2, slug: "test-hoodie", name: "Test Hoodie" },
+        },
+      ],
+      total: 69.97,
+    }
+    stubAuthedFetch({
+      "/api/auth/me": async () => ({ id: 1, email: "demo@mini-ecom.dev", name: "Demo User" }),
+      "/api/cart": async () => multiPayload,
+      "/api/products": async () => [],
+      "/api/cart/items/1": async () => ({
+        items: [multiPayload.items[1]],
+        total: 49.99,
+      }),
+    })
+    const user = userEvent.setup()
+    renderWithProviders()
+    const removeButton = await screen.findByRole("button", { name: "Remove Test Tee" })
+    await user.click(removeButton)
+
+    expect(await screen.findByText("Remove item?")).toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Remove" }))
+    expect(await screen.findByText("Test Hoodie")).toBeInTheDocument()
+  })
 })
