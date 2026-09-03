@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SkeletonImage } from "@/components/ui/skeleton-image"
 import { Spinner } from "@/components/ui/spinner"
 import { ArrowLeft, Check, Heart } from "lucide-react"
 import type { ProductWithVariantsDto } from "@repo/shared-types"
@@ -100,10 +101,11 @@ export default function ProductDetail() {
       </Link>
 
       <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
-        <img
+        <SkeletonImage
           src={product.imageUrl}
           alt={product.name}
-          className="aspect-square w-full rounded-xl object-cover"
+          loading="eager"
+          className="aspect-square w-full rounded-xl"
         />
         <div className="flex flex-col gap-4">
           <div>

@@ -140,15 +140,16 @@ describe("Cart", () => {
   })
 
   it("confirms removal via alert dialog when the cart has multiple items", async () => {
+    const first = cartPayload.items[0]!
     const multiPayload = {
       items: [
-        cartPayload.items[0],
+        first,
         {
-          ...cartPayload.items[0],
+          ...first,
           id: 2,
           variantId: 22,
-          variant: { ...cartPayload.items[0].variant, id: 22, sku: "HDY-T-M", name: "Medium", price: 49.99 },
-          product: { ...cartPayload.items[0].product, id: 2, slug: "test-hoodie", name: "Test Hoodie" },
+          variant: { ...first.variant, id: 22, sku: "HDY-T-M", name: "Medium", price: 49.99 },
+          product: { ...first.product, id: 2, slug: "test-hoodie", name: "Test Hoodie" },
         },
       ],
       total: 69.97,

@@ -3,6 +3,7 @@ import { useProducts } from "@/hooks/use-products"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SkeletonImage } from "@/components/ui/skeleton-image"
 
 function Currency({ value }: { value: number }) {
   return (
@@ -46,11 +47,11 @@ export default function ProductList() {
             <Link key={product.id} to={`/products/${product.id}`} className="group">
               <Card className="h-full transition-shadow hover:shadow-lg">
                 <CardHeader>
-                  <img
+                  <SkeletonImage
                     src={product.imageUrl}
                     alt={product.name}
                     loading="lazy"
-                    className="aspect-[4/3] w-full rounded-xl object-cover"
+                    className="aspect-[4/3] w-full rounded-xl"
                   />
                 </CardHeader>
                 <CardContent>

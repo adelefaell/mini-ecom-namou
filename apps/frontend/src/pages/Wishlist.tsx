@@ -4,6 +4,7 @@ import { useWishlist } from "@/hooks/use-wishlist"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SkeletonImage } from "@/components/ui/skeleton-image"
 import { Spinner } from "@/components/ui/spinner"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Heart, ShoppingCart, Trash2 } from "lucide-react"
@@ -66,10 +67,11 @@ export default function Wishlist() {
           return (
             <Card key={item.id}>
               <CardContent className="flex items-center gap-4 p-4">
-                <img
+                <SkeletonImage
                   src={item.product.imageUrl}
                   alt={item.product.name}
-                  className="h-20 w-20 rounded-lg object-cover"
+                  loading="lazy"
+                  className="h-20 w-20 shrink-0 rounded-lg"
                 />
                 <div className="min-w-0 flex-1">
                   <Link
