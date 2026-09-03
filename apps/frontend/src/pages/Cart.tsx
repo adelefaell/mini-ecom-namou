@@ -143,7 +143,7 @@ export default function Cart() {
                     variant="ghost"
                     size="icon"
                     onClick={() =>
-                      cart.items.length > 1
+                      item.quantity > 1
                         ? setPendingDelete({ id: item.id, name: item.product.name })
                         : removeItem.mutate(item.id)
                     }
@@ -183,7 +183,8 @@ export default function Cart() {
             </AlertDialogMedia>
             <AlertDialogTitle>Remove item?</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingDelete?.name} will be removed from your cart. This can&apos;t be undone.
+              All {pendingDelete?.name} quantities will be removed from your cart. This can&apos;t be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

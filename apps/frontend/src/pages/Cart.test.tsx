@@ -125,10 +125,13 @@ describe("Cart", () => {
     expect(await screen.findAllByText("$29.97")).toHaveLength(2)
   })
 
-  it("removes an item", async () => {
+  it("removes an item directly when its quantity is one", async () => {
     stubAuthedFetch({
       "/api/auth/me": async () => ({ id: 1, email: "demo@mini-ecom.dev", name: "Demo User" }),
-      "/api/cart": async () => cartPayload,
+      "/api/cart": async () => ({
+        items: [{ ...cartPayload.items[0]!, quantity: 1 }],
+        total: 9.99,
+      }),
       "/api/products": async () => [],
       "/api/cart/items/1": async () => ({ items: [], total: 0 }),
     })
@@ -139,29 +142,12 @@ describe("Cart", () => {
     expect(await screen.findByText("Your cart is empty")).toBeInTheDocument()
   })
 
-  it("confirms removal via alert dialog when the cart has multiple items", async () => {
-    const first = cartPayload.items[0]!
-    const multiPayload = {
-      items: [
-        first,
-        {
-          ...first,
-          id: 2,
-          variantId: 22,
-          variant: { ...first.variant, id: 22, sku: "HDY-T-M", name: "Medium", price: 49.99 },
-          product: { ...first.product, id: 2, slug: "test-hoodie", name: "Test Hoodie" },
-        },
-      ],
-      total: 69.97,
-    }
+  it("confirms removal via alert dialog when the item quantity is more than one", async () => {
     stubAuthedFetch({
       "/api/auth/me": async () => ({ id: 1, email: "demo@mini-ecom.dev", name: "Demo User" }),
-      "/api/cart": async () => multiPayload,
+      "/api/cart": async () => cartPayload,
       "/api/products": async () => [],
-      "/api/cart/items/1": async () => ({
-        items: [multiPayload.items[1]],
-        total: 49.99,
-      }),
+      "/api/cart/items/1": async () => ({ items: [], total: 0 }),
     })
     const user = userEvent.setup()
     renderWithProviders()
@@ -170,6 +156,6 @@ describe("Cart", () => {
 
     expect(await screen.findByText("Remove item?")).toBeInTheDocument()
     await user.click(screen.getByRole("button", { name: "Remove" }))
-    expect(await screen.findByText("Test Hoodie")).toBeInTheDocument()
+    expect(await screen.findByText("Your cart is empty")).toBeInTheDocument()
   })
 })
