@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { ArrowLeft, Check, Heart } from "lucide-react"
 import type { ProductWithVariantsDto } from "@repo/shared-types"
 
@@ -148,21 +149,31 @@ export default function ProductDetail() {
                   <Button
                     className="flex-1"
                     onClick={handleAddToCart}
-                    disabled={isAddDisabled}
+                    disabled={isAddDisabled || addItem.isPending}
                   >
-                    {!user
-                      ? "Sign in to add to cart"
-                      : selectedVariant.stock > 0
-                        ? "Add to cart"
-                        : "Out of stock"}
+                    {addItem.isPending ? (
+                      <>
+                        <Spinner /> Adding...
+                      </>
+                    ) : !user ? (
+                      "Sign in to add to cart"
+                    ) : selectedVariant.stock > 0 ? (
+                      "Add to cart"
+                    ) : (
+                      "Out of stock"
+                    )}
                   </Button>
                   {user && (
                     <Button
                       variant={isWishlisted ? "secondary" : "outline"}
                       onClick={handleAddToWishlist}
-                      disabled={isWishlisted}
+                      disabled={isWishlisted || addWishlistItem.isPending}
                     >
-                      <Heart className="size-4" />
+                      {addWishlistItem.isPending ? (
+                        <Spinner />
+                      ) : (
+                        <Heart className="size-4" />
+                      )}
                       {isWishlisted ? "Saved" : "Save"}
                     </Button>
                   )}

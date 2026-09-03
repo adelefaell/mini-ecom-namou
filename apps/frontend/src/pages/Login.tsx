@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function Login() {
@@ -11,20 +12,19 @@ export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
-  async function handleSubmit(event: React.FormEvent) {
+  function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setError(null)
-    setIsSubmitting(true)
-    try {
-      await login(email, password)
-      navigate("/")
-    } catch {
-      setError("Invalid email or password")
-    } finally {
-      setIsSubmitting(false)
-    }
+    startTransition(async () => {
+      try {
+        await login(email, password)
+        navigate("/")
+      } catch {
+        setError("Invalid email or password")
+      }
+    })
   }
 
   return (
@@ -63,8 +63,9 @@ export default function Login() {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? "Signing in..." : "Sign in"}
+            <Button type="submit" disabled={isPending} className="w-full">
+              {isPending ? <Spinner /> : null}
+              {isPending ? "Signing in..." : "Sign in"}
             </Button>
           </form>
           <p className="mt-4 text-center text-xs text-muted-foreground">

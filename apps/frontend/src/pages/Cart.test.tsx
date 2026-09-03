@@ -119,7 +119,7 @@ describe("Cart", () => {
     })
     const user = userEvent.setup()
     renderWithProviders()
-    const addButton = await screen.findByRole("button", { name: "+" })
+    const addButton = await screen.findByRole("button", { name: "Increase quantity of Test Tee" })
     await user.click(addButton)
     expect(await screen.findByText("3")).toBeInTheDocument()
     expect(await screen.findAllByText("$29.97")).toHaveLength(2)

@@ -7,7 +7,22 @@ import { api } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CheckCircle2 } from "lucide-react"
+import { Spinner } from "@/components/ui/spinner"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { CheckCircle2, ShoppingBag } from "lucide-react"
+
+function CheckoutSkeleton() {
+  return (
+    <div className="container mx-auto max-w-3xl px-4 py-8">
+      <Skeleton className="h-8 w-40" />
+      <div className="mt-6 space-y-4">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function Checkout() {
   const { user, isPending: isAuthPending } = useAuth()
@@ -24,16 +39,7 @@ export default function Checkout() {
   })
 
   if (isAuthPending) {
-    return (
-      <div className="container mx-auto max-w-3xl px-4 py-8">
-        <Skeleton className="h-8 w-40" />
-        <div className="mt-6 space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    )
+    return <CheckoutSkeleton />
   }
 
   if (!user) {
@@ -75,25 +81,23 @@ export default function Checkout() {
   }
 
   if (isPending) {
-    return (
-      <div className="container mx-auto max-w-3xl px-4 py-8">
-        <Skeleton className="h-8 w-40" />
-        <div className="mt-6 space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
-          ))}
-        </div>
-      </div>
-    )
+    return <CheckoutSkeleton />
   }
 
   if (cart.items.length === 0) {
     return (
-      <div className="container mx-auto max-w-3xl px-4 py-20 text-center">
-        <h1 className="text-2xl font-semibold">Your cart is empty</h1>
-        <Link to="/" className="mt-4 inline-block text-primary underline-offset-4 hover:underline">
-          Browse the catalogue
-        </Link>
+      <div className="container mx-auto max-w-3xl px-4 py-12">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ShoppingBag className="size-4" />
+            </EmptyMedia>
+            <EmptyTitle>Your cart is empty</EmptyTitle>
+            <EmptyDescription>
+              <Link to="/">Browse the catalogue</Link> and add something you like.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     )
   }
@@ -136,6 +140,7 @@ export default function Checkout() {
           onClick={() => placeOrder.mutate()}
           disabled={placeOrder.isPending}
         >
+          {placeOrder.isPending ? <Spinner /> : null}
           {placeOrder.isPending ? "Placing order..." : "Place order"}
         </Button>
       </div>
