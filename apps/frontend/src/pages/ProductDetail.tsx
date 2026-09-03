@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SkeletonImage } from "@/components/ui/skeleton-image"
 import { Spinner } from "@/components/ui/spinner"
+import { CartSheet } from "@/components/cart/CartSheet"
 import { ArrowLeft, Check, Heart } from "lucide-react"
 import type { ProductWithVariantsDto } from "@repo/shared-types"
 
@@ -24,6 +25,8 @@ export default function ProductDetail() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [justAdded, setJustAdded] = useState<string | null>(null)
 
   if (isError || (productId != null && Number.isNaN(productId))) {
     return (
@@ -62,7 +65,11 @@ export default function ProductDetail() {
       return
     }
     if (!selectedVariant || selectedVariant.stock <= 0) return
+
+    const addedName = product!.name
     await addItem.mutateAsync({ variantId: selectedVariant.id, quantity: 1 })
+    setSheetOpen(true)
+    setJustAdded(addedName)
 
     queryClient.setQueryData<ProductWithVariantsDto>(["products", productId], (current) => {
       if (!current) return current
@@ -185,6 +192,12 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
+
+      <CartSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        justAddedName={justAdded}
+      />
     </div>
   )
 }

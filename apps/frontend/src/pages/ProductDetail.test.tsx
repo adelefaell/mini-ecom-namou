@@ -103,7 +103,7 @@ describe("ProductDetail", () => {
     const button = screen.getByRole("button", { name: "Add to cart" })
 
     await user.click(button)
-    expect(await screen.findAllByText("Out of stock")).toHaveLength(2)
+    await user.click(await screen.findByRole("button", { name: "Continue Shopping" }))
     expect(screen.getByRole("button", { name: "Out of stock" })).toBeDisabled()
   })
 
