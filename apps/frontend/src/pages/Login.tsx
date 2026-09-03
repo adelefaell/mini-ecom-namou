@@ -67,6 +67,10 @@ export default function Login() {
               {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
           </form>
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Demo account — email: <span className="font-medium">demo@mini-ecom.dev</span> · password:{" "}
+            <span className="font-medium">demo-password</span>
+          </p>
         </CardContent>
       </Card>
     </div>

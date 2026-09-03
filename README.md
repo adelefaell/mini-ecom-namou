@@ -33,12 +33,14 @@ pnpm dev
 - Backend: http://localhost:3001 (Vite proxies `/api` to it)
 - Frontend: http://localhost:3002
 
-Seed the demo user and catalogue:
+Seed the demo user and catalogue (migrations must run first — the dev database starts empty):
 
 ```sh
 pnpm --filter backend db:migrate
 pnpm --filter backend db:seed
 ```
+
+Frontend dev server binds strictly to `http://localhost:3002` (`strictPort`); if the port is taken, Vite fails loudly instead of silently moving to another port.
 
 ### Run with Docker
 

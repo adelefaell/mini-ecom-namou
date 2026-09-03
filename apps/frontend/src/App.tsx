@@ -6,21 +6,30 @@ import Cart from "@/pages/Cart"
 import Wishlist from "@/pages/Wishlist"
 import Checkout from "@/pages/Checkout"
 import Header from "@/components/Header"
-import { AuthProvider } from "@/hooks/use-auth"
+import { AuthProvider, useAuthStore } from "@/hooks/use-auth"
+
+function AppShell() {
+  const user = useAuthStore((s) => s.user)
+  return (
+    <>
+      {user && <Header />}
+      <Routes>
+        <Route path="/" element={<ProductList />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/checkout" element={<Checkout />} />
+      </Routes>
+    </>
+  )
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Header />
-        <Routes>
-          <Route path="/" element={<ProductList />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/wishlist" element={<Wishlist />} />
-          <Route path="/checkout" element={<Checkout />} />
-        </Routes>
+        <AppShell />
       </AuthProvider>
     </BrowserRouter>
   )
