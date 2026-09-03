@@ -22,20 +22,26 @@ export default function Header() {
         <Link to="/" className="font-semibold tracking-tight">
           Mini E-Com
         </Link>
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" render={<Link to="/wishlist" />}>
-            <Heart className="size-4" />
-            Wishlist{wishlist.items.length > 0 ? ` (${wishlist.items.length})` : ""}
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" render={<Link to="/wishlist" />}>
+              <Heart className="size-4" />
+              Wishlist{wishlist.items.length > 0 ? ` (${wishlist.items.length})` : ""}
+            </Button>
+            <Button variant="ghost" size="sm" render={<Link to="/cart" />}>
+              <ShoppingCart className="size-4" />
+              Cart{count > 0 ? ` (${count})` : ""}
+            </Button>
+            <span className="text-sm text-muted-foreground">{user.name}</span>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              Log out
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" render={<Link to="/login" />}>
+            Sign in
           </Button>
-          <Button variant="ghost" size="sm" render={<Link to="/cart" />}>
-            <ShoppingCart className="size-4" />
-            Cart{count > 0 ? ` (${count})` : ""}
-          </Button>
-          <span className="text-sm text-muted-foreground">{user?.name}</span>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            Log out
-          </Button>
-        </div>
+        )}
       </div>
     </header>
   )

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import ProductList from "@/pages/ProductList"
 import ProductDetail from "@/pages/ProductDetail"
 import Login from "@/pages/Login"
@@ -6,13 +6,14 @@ import Cart from "@/pages/Cart"
 import Wishlist from "@/pages/Wishlist"
 import Checkout from "@/pages/Checkout"
 import Header from "@/components/Header"
-import { AuthProvider, useAuthStore } from "@/hooks/use-auth"
+import { AuthProvider } from "@/hooks/use-auth"
 
 function AppShell() {
-  const user = useAuthStore((s) => s.user)
+  const location = useLocation()
+  const hideHeader = location.pathname === "/login"
   return (
     <>
-      {user && <Header />}
+      {!hideHeader && <Header />}
       <Routes>
         <Route path="/" element={<ProductList />} />
         <Route path="/products/:id" element={<ProductDetail />} />
