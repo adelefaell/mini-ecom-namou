@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
+import { RemoveConfirmDialog } from "@/components/cart/RemoveConfirmDialog"
 import {
   Sheet,
   SheetContent,
@@ -11,17 +12,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { CheckCircle2, Minus, Plus, Trash2 } from "lucide-react"
 
 interface CartSheetProps {
@@ -137,37 +127,11 @@ export function CartSheet({ open, onOpenChange, justAddedName }: CartSheetProps)
           <Button render={<Link to="/cart" />}>View Cart →</Button>
         </SheetFooter>
 
-        <AlertDialog
-          open={pendingDelete != null}
-          onOpenChange={(open) => {
-            if (!open) setPendingDelete(null)
-          }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogMedia>
-                <Trash2 className="size-4" />
-              </AlertDialogMedia>
-              <AlertDialogTitle>Remove item?</AlertDialogTitle>
-              <AlertDialogDescription>
-                All {pendingDelete?.name} quantities will be removed from your cart. This can&apos;t
-                be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                variant="destructive"
-                onClick={() => {
-                  if (pendingDelete) removeItem.mutate(pendingDelete.id)
-                  setPendingDelete(null)
-                }}
-              >
-                Remove
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <RemoveConfirmDialog
+          pending={pendingDelete}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={(id) => removeItem.mutate(id)}
+        />
       </SheetContent>
     </Sheet>
   )

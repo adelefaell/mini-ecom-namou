@@ -27,7 +27,7 @@ function renderWithProviders(ui: React.ReactNode) {
 function stubAuthedFetch(handlers: Record<string, () => Promise<unknown>>) {
   vi.stubGlobal(
     "fetch",
-    vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    vi.fn((input: RequestInfo | URL) => {
       const url = String(input)
       const handler = handlers[url.split("?")[0]!]
       if (!handler) {

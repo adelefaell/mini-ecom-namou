@@ -8,17 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SkeletonImage } from "@/components/ui/skeleton-image"
 import { Spinner } from "@/components/ui/spinner"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { RemoveConfirmDialog } from "@/components/cart/RemoveConfirmDialog"
 import { Minus, Plus, Trash2 } from "lucide-react"
 
 function CartSkeleton() {
@@ -162,37 +152,11 @@ export default function Cart() {
         </Button>
       </div>
 
-      <AlertDialog
-        open={pendingDelete != null}
-        onOpenChange={(open) => {
-          if (!open) setPendingDelete(null)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogMedia>
-              <Trash2 className="size-4" />
-            </AlertDialogMedia>
-            <AlertDialogTitle>Remove item?</AlertDialogTitle>
-            <AlertDialogDescription>
-              All {pendingDelete?.name} quantities will be removed from your cart. This can&apos;t be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              onClick={() => {
-                if (pendingDelete) removeItem.mutate(pendingDelete.id)
-                setPendingDelete(null)
-              }}
-            >
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <RemoveConfirmDialog
+        pending={pendingDelete}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={(id) => removeItem.mutate(id)}
+      />
     </div>
   )
 }

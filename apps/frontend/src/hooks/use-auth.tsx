@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { create } from "zustand"
+import { useShallow } from "zustand/react/shallow"
 import { api, ApiError } from "@/lib/api"
 import type { AuthUserDto } from "@repo/shared-types"
 
@@ -38,7 +39,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 }))
 
 export function useAuth() {
-  return useAuthStore()
+  return useAuthStore(
+    useShallow((s) => ({
+      user: s.user,
+      isPending: s.isPending,
+      login: s.login,
+      logout: s.logout,
+    })),
+  )
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
