@@ -2,7 +2,9 @@
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true
   },
   "include": ["src"]
 }
