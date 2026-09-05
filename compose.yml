@@ -1,0 +1,43 @@
+name: mini-ecom
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: mini-ecom-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "3001"
+      DATABASE_URL: file:./data/mini-ecom.db
+    volumes:
+      - mini_ecom_data:/app/apps/backend/data
+    # Internal network only — reached by nginx, never exposed to the host.
+    expose:
+      - "3001"
+    networks:
+      - mini-ecom-internal
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    container_name: mini-ecom-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:8083:80"
+    networks:
+      - mini-ecom-internal
+
+networks:
+  mini-ecom-internal:
+    driver: bridge
+
+volumes:
+  mini_ecom_data:
