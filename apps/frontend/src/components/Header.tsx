@@ -5,6 +5,7 @@ import { useCart } from "@/hooks/use-cart"
 import { useWishlist } from "@/hooks/use-wishlist"
 import { Button } from "@/components/ui/button"
 import { CartSheet } from "@/components/cart/CartSheet"
+import { ModeToggle } from "@/components/mode-toggle"
 import { Heart, ShoppingCart } from "lucide-react"
 
 export default function Header() {
@@ -25,8 +26,10 @@ export default function Header() {
         <Link to="/" className="font-semibold tracking-tight">
           Mini E-Com
         </Link>
+        <div className="flex items-center gap-3">
+          <ModeToggle />
         {user ? (
-          <div className="flex items-center gap-3">
+          <>
             <Button variant="ghost" size="sm" render={<Link to="/wishlist" />}>
               <Heart className="size-4" />
               Wishlist{wishlist.items.length > 0 ? ` (${wishlist.items.length})` : ""}
@@ -43,12 +46,13 @@ export default function Header() {
             <Button variant="destructive" size="sm" onClick={handleLogout}>
               Log out
             </Button>
-          </div>
+          </>
         ) : (
           <Button variant="outline" size="sm" render={<Link to="/login" />}>
             Sign in
           </Button>
         )}
+        </div>
       </div>
 
       <CartSheet open={cartSheetOpen} onOpenChange={setCartSheetOpen} />
