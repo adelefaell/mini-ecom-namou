@@ -124,10 +124,12 @@ describe("CartSheet", () => {
       "/api/auth/me": async () => ({ id: 1, email: "demo@mini-ecom.dev", name: "Demo User" }),
       "/api/cart": async () => cartPayload,
     })
+    const onOpenChange = vi.fn()
     const user = userEvent.setup()
-    renderWithProviders(<CartSheet open onOpenChange={vi.fn()} />)
+    renderWithProviders(<CartSheet open onOpenChange={onOpenChange} />)
     await user.click(await screen.findByRole("link", { name: "View Cart →" }))
     expect(await screen.findByText("Cart page")).toBeInTheDocument()
+    expect(onOpenChange).toHaveBeenCalledWith(false)
   })
 
   it("closes via Continue Shopping", async () => {
