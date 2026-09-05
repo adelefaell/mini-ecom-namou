@@ -48,6 +48,7 @@ pnpm --filter backend db:seed
 | `pnpm test` | run all Vitest suites |
 | `pnpm lint` | oxlint across the repo |
 | `pnpm check-types` | `tsc --noEmit` everywhere |
+| `pnpm --filter frontend test:e2e` | Playwright cart-flow e2e (needs free ports 3001/3002, `pnpm exec playwright install chromium` first) |
 
 Backend-only helpers live in `apps/backend`: `db:generate`, `db:migrate`, `db:seed`.
 
