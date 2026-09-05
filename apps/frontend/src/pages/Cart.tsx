@@ -65,7 +65,7 @@ export default function Cart() {
           const rowRemovePending = removeItem.isPending && removeItem.variables === item.id
           const rowBusy = rowUpdatePending || rowRemovePending
           return (
-            <Card key={item.id}>
+            <Card key={item.id} data-testid="cart-row">
               <CardContent className="flex items-center gap-4 p-4">
                 <SkeletonImage
                   src={item.product.imageUrl}
@@ -104,7 +104,7 @@ export default function Cart() {
                     >
                       <Minus className="size-3.5" />
                     </Button>
-                    <span className="w-8 text-center text-sm">{item.quantity}</span>
+                    <span data-testid="cart-qty" className="w-8 text-center text-sm">{item.quantity}</span>
                     <Button
                       variant="outline"
                       size="icon-sm"
