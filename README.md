@@ -16,82 +16,46 @@ A small full-stack storefront: Fastify + SQLite backend, React + Vite frontend, 
 | --- | --- |
 | `demo@mini-ecom.dev` | `demo-password` |
 
-## Run it — three ways
+## Setup
 
-Pick the tool you like; all three run the same stack (backend :3001, frontend :3002, seeded demo data).
+Requires **Node.js 24** and **pnpm 11**.
 
-### 1. Docker (one command)
+### Linux / macOS
 
-Requires Docker (no pnpm/Node needed). Migrations + seed run automatically on backend start.
+1. Install prerequisites, then clone the repo:
 
-```sh
-docker compose -f compose.dev.yml up --build
-```
+   ```sh
+   curl -fsSL https://get.pnpm.io/install.sh | sh   # or: corepack enable
+   ```
 
-Open http://localhost:3002. `Ctrl+C` to stop.
+   Node via your package manager or [nvm](https://github.com/nvm-sh/nvm) (use Node 24).
 
-**Permission denied (`/var/run/docker.sock`)?** Your user isn't in the docker group. Fix once, then log out/in:
+   ```sh
+   git clone git@github.com:adelefaell/mini-ecom-namou.git mini-ecom
+   cd mini-ecom
+   pnpm install
+   ```
 
-```sh
-sudo usermod -aG docker "$USER"   # then re-login (or `newgrp docker`)
-```
+2. Terminal 1 — backend (http://localhost:3001):
 
-Verify with `docker info`, or temporarily use `sudo docker compose ...`.
+   ```sh
+   cd apps/backend
+   pnpm db:migrate && pnpm db:seed   # first run only — creates DB + demo user
+   pnpm dev
+   ```
 
-### 2. tmux (one command)
+3. Terminal 2 — frontend (http://localhost:3002, Vite proxies `/api` to the backend):
 
-Requires `tmux`. Creates a `mini-ecom` session with a backend window and a frontend window.
+   ```sh
+   cd apps/frontend
+   pnpm dev
+   ```
 
-```sh
-./scripts/run.sh tmux
-```
+4. Open http://localhost:3002 and sign in with the demo account above.
 
-### 3. Manual — one terminal each
+Or run both at once from the repo root with Turborepo (`pnpm dev`) — same result, one terminal. Migrate + seed still once first.
 
-Requires Node 24 and pnpm 11:
-
-```sh
-pnpm install
-```
-
-Terminal 1 — backend (http://localhost:3001):
-
-```sh
-cd apps/backend
-pnpm db:migrate && pnpm db:seed
-pnpm dev
-```
-
-Terminal 2 — frontend (http://localhost:3002, Vite proxies `/api` to the backend):
-
-```sh
-cd apps/frontend
-pnpm dev
-```
-
-### Just tired of choosing?
-
-```sh
-./scripts/run.sh          # interactive picker
-./scripts/run.sh docker   # or pin one: docker | tmux | manual
-```
-
-## Scripts
-
-| command | what |
-| --- | --- |
-| `pnpm dev` | run both apps in watch mode |
-| `pnpm test` | run all Vitest suites |
-| `pnpm lint` | oxlint across the repo |
-| `pnpm check-types` | `tsc --noEmit` everywhere |
-| `pnpm --filter frontend test:e2e` | Playwright cart-flow e2e (needs free ports 3001/3002, `pnpm exec playwright install chromium` first) |
-| `./scripts/run.sh docker` | run whole stack via dev compose |
-| `./scripts/run.sh tmux` | run whole stack in a tmux session |
-| `./scripts/deploy.sh` | deploy `main` to the app-hub server over ssh |
-
-Backend-only helpers live in `apps/backend`: `db:generate`, `db:migrate`, `db:seed`.
-
-### Windows setup
+### Windows
 
 No tmux or `nohup` required — `pnpm dev` (Turborepo) starts both servers in the **one terminal window** you launch it from. Press `Ctrl+C` to stop them together.
 
@@ -121,16 +85,35 @@ No tmux or `nohup` required — `pnpm dev` (Turborepo) starts both servers in th
    ```
    `better-sqlite3` ships prebuilt binaries for Windows — no build tools needed. If install ever complains about the native module, install [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) with the "Desktop development with C++" workload and re-run `pnpm install`.
 
-**Troubleshooting**
+### Troubleshooting
 
 - **Port 3002 already in use** — the dev server refuses to start (`strictPort`) instead of silently moving to 3004. Find and kill the process holding it:
-  ```sh
-  netstat -ano | findstr :3002
-  taskkill /PID <pid> /F
-  ```
+  - Windows:
+    ```sh
+    netstat -ano | findstr :3002
+    taskkill /PID <pid> /F
+    ```
+  - Linux/macOS:
+    ```sh
+    lsof -i :3002
+    kill <pid>
+    ```
 - **`pnpm` not recognized** — the global install location may not be on your `PATH`; reopen your terminal after installing.
 - **`pnpm dev` starts but frontend never becomes ready** — make sure you are running it from the repo root (`mini-ecom`), not inside `apps/frontend`.
-- **Native module build error on install** — see step 4 note about Visual Studio Build Tools.
+- **Native module build error on install** — Windows: see step 4 note about Visual Studio Build Tools. Linux: ensure build tools + Python are present (`sudo apt install build-essential python3`) and re-run `pnpm install`.
+
+## Scripts
+
+| command | what |
+| --- | --- |
+| `pnpm dev` | run both apps in watch mode |
+| `pnpm test` | run all Vitest suites |
+| `pnpm lint` | oxlint across the repo |
+| `pnpm check-types` | `tsc --noEmit` everywhere |
+| `pnpm --filter frontend test:e2e` | Playwright cart-flow e2e (needs free ports 3001/3002, `pnpm exec playwright install chromium` first) |
+| `./scripts/deploy.sh` | deploy `main` to the app-hub server over ssh |
+
+Backend-only helpers live in `apps/backend`: `db:generate`, `db:migrate`, `db:seed`.
 
 ## Production deploy
 
@@ -140,7 +123,7 @@ No tmux or `nohup` required — `pnpm dev` (Turborepo) starts both servers in th
 ./scripts/deploy.sh
 ```
 
-The deploy uses `compose.yml` (production images) and a server-side `.env`. The live app is served on http://127.0.0.1:8083.
+The deploy uses `compose.yml` (production images) and a server-side `.env`. The live app is served on http://127.0.0.1:8083. Docker is used for deployment only; local development runs via `pnpm`, as above.
 
 ## Architecture
 
