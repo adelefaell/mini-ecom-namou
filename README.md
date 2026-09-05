@@ -22,13 +22,21 @@ Pick the tool you like; all three run the same stack (backend :3001, frontend :3
 
 ### 1. Docker (one command)
 
-Requires Docker. Migrations + seed run automatically on backend start.
+Requires Docker (no pnpm/Node needed). Migrations + seed run automatically on backend start.
 
 ```sh
 docker compose -f compose.dev.yml up --build
 ```
 
 Open http://localhost:3002. `Ctrl+C` to stop.
+
+**Permission denied (`/var/run/docker.sock`)?** Your user isn't in the docker group. Fix once, then log out/in:
+
+```sh
+sudo usermod -aG docker "$USER"   # then re-login (or `newgrp docker`)
+```
+
+Verify with `docker info`, or temporarily use `sudo docker compose ...`.
 
 ### 2. tmux (one command)
 
