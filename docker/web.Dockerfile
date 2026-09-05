@@ -10,6 +10,6 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter frontend build
 
 FROM nginx:alpine
-COPY apps/frontend/dist /usr/share/nginx/html
+COPY --from=build /app/apps/frontend/dist /usr/share/nginx/html
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

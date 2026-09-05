@@ -15,5 +15,4 @@ coverage
 .env
 .env.local
 apps/backend/.env
-apps/frontend/dist
 apps/backend/data
