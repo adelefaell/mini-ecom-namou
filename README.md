@@ -16,28 +16,56 @@ A small full-stack storefront: Fastify + SQLite backend, React + Vite frontend, 
 | --- | --- |
 | `demo@mini-ecom.dev` | `demo-password` |
 
-## Setup
+## Run it — three ways
 
-Requires Node 24 and pnpm 11.
+Pick the tool you like; all three run the same stack (backend :3001, frontend :3002, seeded demo data).
+
+### 1. Docker (one command)
+
+Requires Docker. Migrations + seed run automatically on backend start.
+
+```sh
+docker compose -f compose.dev.yml up --build
+```
+
+Open http://localhost:3002. `Ctrl+C` to stop.
+
+### 2. tmux (one command)
+
+Requires `tmux`. Creates a `mini-ecom` session with a backend window and a frontend window.
+
+```sh
+./scripts/run.sh tmux
+```
+
+### 3. Manual — one terminal each
+
+Requires Node 24 and pnpm 11:
 
 ```sh
 pnpm install
 ```
 
-### Run locally
+Terminal 1 — backend (http://localhost:3001):
 
 ```sh
+cd apps/backend
+pnpm db:migrate && pnpm db:seed
 pnpm dev
 ```
 
-- Backend: http://localhost:3001 (Vite proxies `/api` to it)
-- Frontend: http://localhost:3002
-
-Seed the demo user and catalogue (migrations must run first — the dev database starts empty):
+Terminal 2 — frontend (http://localhost:3002, Vite proxies `/api` to the backend):
 
 ```sh
-pnpm --filter backend db:migrate
-pnpm --filter backend db:seed
+cd apps/frontend
+pnpm dev
+```
+
+### Just tired of choosing?
+
+```sh
+./scripts/run.sh          # interactive picker
+./scripts/run.sh docker   # or pin one: docker | tmux | manual
 ```
 
 ## Scripts
@@ -49,6 +77,9 @@ pnpm --filter backend db:seed
 | `pnpm lint` | oxlint across the repo |
 | `pnpm check-types` | `tsc --noEmit` everywhere |
 | `pnpm --filter frontend test:e2e` | Playwright cart-flow e2e (needs free ports 3001/3002, `pnpm exec playwright install chromium` first) |
+| `./scripts/run.sh docker` | run whole stack via dev compose |
+| `./scripts/run.sh tmux` | run whole stack in a tmux session |
+| `./scripts/deploy.sh` | deploy `main` to the app-hub server over ssh |
 
 Backend-only helpers live in `apps/backend`: `db:generate`, `db:migrate`, `db:seed`.
 
@@ -92,6 +123,16 @@ No tmux or `nohup` required — `pnpm dev` (Turborepo) starts both servers in th
 - **`pnpm` not recognized** — the global install location may not be on your `PATH`; reopen your terminal after installing.
 - **`pnpm dev` starts but frontend never becomes ready** — make sure you are running it from the repo root (`mini-ecom`), not inside `apps/frontend`.
 - **Native module build error on install** — see step 4 note about Visual Studio Build Tools.
+
+## Production deploy
+
+`main` is the deploy branch. The server (`app-hub`) checks out `main`, builds, and runs the full stack (nginx + backend + SQLite) behind `docker compose`:
+
+```sh
+./scripts/deploy.sh
+```
+
+The deploy uses `compose.yml` (production images) and a server-side `.env`. The live app is served on http://127.0.0.1:8083.
 
 ## Architecture
 

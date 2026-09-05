@@ -1,0 +1,59 @@
+name: mini-ecom-dev
+
+# One-shot dev stack: hot-reload backend + Vite HMR frontend.
+#   docker compose -f compose.dev.yml up --build
+# Open http://localhost:3002 (API proxied by Vite to backend:3001).
+# Migrations + seed run automatically on backend start.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    command: ["sh", "-c", "cd apps/backend && pnpm db:migrate && pnpm db:seed && pnpm dev"]
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: "3001"
+      DATABASE_URL: file:./data/mini-ecom.db
+    volumes:
+      - .:/app
+      # Keep image-installed deps (native better-sqlite3 for Linux) even when
+      # the host has its own node_modules. pnpm workspace deps are symlinks into
+      # the root .pnpm store, so one anonymous volume at the root is enough.
+      - /app/node_modules
+      - /app/apps/backend/node_modules
+      - /app/apps/frontend/node_modules
+      - /app/packages/shared-types/node_modules
+      - mini_ecom_dev_data:/app/apps/backend/data
+    ports:
+      - "127.0.0.1:3001:3001"
+    networks:
+      - mini-ecom-dev-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.dev.Dockerfile
+    command: ["sh", "-c", "cd apps/frontend && pnpm exec vite --host 0.0.0.0"]
+    environment:
+      API_TARGET: http://backend:3001
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/backend/node_modules
+      - /app/apps/frontend/node_modules
+      - /app/packages/shared-types/node_modules
+    ports:
+      - "127.0.0.1:3002:3002"
+    depends_on:
+      - backend
+    networks:
+      - mini-ecom-dev-network
+
+networks:
+  mini-ecom-dev-network:
+    driver: bridge
+
+volumes:
+  mini_ecom_dev_data:
