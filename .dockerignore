@@ -1,0 +1,18 @@
+# Local deploy build context. Ignore everything not needed at build/run time.
+node_modules
+.git
+.gitignore
+*.db
+*.db-wal
+*.db-shm
+data
+dist
+test-results
+playwright-report
+.turbo
+coverage
+*.tsbuildinfo
+.env
+.env.local
+apps/backend/.env
+apps/backend/data

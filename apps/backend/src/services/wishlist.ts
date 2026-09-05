@@ -13,6 +13,14 @@ export function removeItem(userId: number, itemId: number) {
   return wishlistRepository.removeItem(userId, itemId)
 }
 
+export function findByUserIdAndId(userId: number, itemId: number) {
+  return wishlistRepository.findByUserIdAndId(userId, itemId)
+}
+
+export function variantExists(id: number) {
+  return wishlistRepository.variantExists(id)
+}
+
 export function removeByVariant(userId: number, variantId: number) {
   return wishlistRepository.removeByVariant(userId, variantId)
 }

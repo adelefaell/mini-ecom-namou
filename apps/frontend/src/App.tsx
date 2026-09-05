@@ -7,6 +7,7 @@ import Wishlist from "@/pages/Wishlist"
 import Checkout from "@/pages/Checkout"
 import Header from "@/components/Header"
 import { AuthProvider } from "@/hooks/use-auth"
+import { ThemeProvider } from "@/components/theme-provider"
 
 function AppShell() {
   return (
@@ -27,9 +28,11 @@ function AppShell() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppShell />
-      </AuthProvider>
+      <ThemeProvider defaultTheme="system">
+        <AuthProvider>
+          <AppShell />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

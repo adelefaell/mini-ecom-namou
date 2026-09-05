@@ -18,40 +18,44 @@ A small full-stack storefront: Fastify + SQLite backend, React + Vite frontend, 
 
 ## Setup
 
-Requires Node 24 and pnpm 11.
+Requires **Node.js 24** and **pnpm 11**.
 
-```sh
-pnpm install
-```
+### Linux / macOS
 
-### Run locally
+1. Install prerequisites, then clone the repo:
 
-```sh
-pnpm dev
-```
+   ```sh
+   curl -fsSL https://get.pnpm.io/install.sh | sh   # or: corepack enable
+   ```
 
-- Backend: http://localhost:3001 (Vite proxies `/api` to it)
-- Frontend: http://localhost:3002
+   Node via your package manager or [nvm](https://github.com/nvm-sh/nvm) (use Node 24).
 
-Seed the demo user and catalogue (migrations must run first — the dev database starts empty):
+   ```sh
+   git clone git@github.com:adelefaell/mini-ecom-namou.git mini-ecom
+   cd mini-ecom
+   pnpm install
+   ```
 
-```sh
-pnpm --filter backend db:migrate
-pnpm --filter backend db:seed
-```
+2. Terminal 1 — backend (http://localhost:3001):
 
-## Scripts
+   ```sh
+   cd apps/backend
+   pnpm db:migrate && pnpm db:seed   # first run only — creates DB + demo user
+   pnpm dev
+   ```
 
-| command | what |
-| --- | --- |
-| `pnpm dev` | run both apps in watch mode |
-| `pnpm test` | run all Vitest suites |
-| `pnpm lint` | oxlint across the repo |
-| `pnpm check-types` | `tsc --noEmit` everywhere |
+3. Terminal 2 — frontend (http://localhost:3002, Vite proxies `/api` to the backend):
 
-Backend-only helpers live in `apps/backend`: `db:generate`, `db:migrate`, `db:seed`.
+   ```sh
+   cd apps/frontend
+   pnpm dev
+   ```
 
-### Windows setup
+4. Open http://localhost:3002 and sign in with the demo account above.
+
+Or run both at once from the repo root with Turborepo (`pnpm dev`) — same result, one terminal. Migrate + seed still once first.
+
+### Windows
 
 No tmux or `nohup` required — `pnpm dev` (Turborepo) starts both servers in the **one terminal window** you launch it from. Press `Ctrl+C` to stop them together.
 
@@ -81,16 +85,45 @@ No tmux or `nohup` required — `pnpm dev` (Turborepo) starts both servers in th
    ```
    `better-sqlite3` ships prebuilt binaries for Windows — no build tools needed. If install ever complains about the native module, install [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022) with the "Desktop development with C++" workload and re-run `pnpm install`.
 
-**Troubleshooting**
+### Troubleshooting
 
 - **Port 3002 already in use** — the dev server refuses to start (`strictPort`) instead of silently moving to 3004. Find and kill the process holding it:
-  ```sh
-  netstat -ano | findstr :3002
-  taskkill /PID <pid> /F
-  ```
+  - Windows:
+    ```sh
+    netstat -ano | findstr :3002
+    taskkill /PID <pid> /F
+    ```
+  - Linux/macOS:
+    ```sh
+    lsof -i :3002
+    kill <pid>
+    ```
 - **`pnpm` not recognized** — the global install location may not be on your `PATH`; reopen your terminal after installing.
 - **`pnpm dev` starts but frontend never becomes ready** — make sure you are running it from the repo root (`mini-ecom`), not inside `apps/frontend`.
-- **Native module build error on install** — see step 4 note about Visual Studio Build Tools.
+- **Native module build error on install** — Windows: see step 4 note about Visual Studio Build Tools. Linux: ensure build tools + Python are present (`sudo apt install build-essential python3`) and re-run `pnpm install`.
+
+## Scripts
+
+| command | what |
+| --- | --- |
+| `pnpm dev` | run both apps in watch mode |
+| `pnpm test` | run all Vitest suites |
+| `pnpm lint` | oxlint across the repo |
+| `pnpm check-types` | `tsc --noEmit` everywhere |
+| `pnpm --filter frontend test:e2e` | Playwright cart-flow e2e (needs free ports 3001/3002, `pnpm exec playwright install chromium` first) |
+| `./scripts/deploy.sh` | deploy `main` to the app-hub server over ssh |
+
+Backend-only helpers live in `apps/backend`: `db:generate`, `db:migrate`, `db:seed`.
+
+## Production deploy
+
+`main` is the deploy branch. The server (`app-hub`) checks out `main`, builds, and runs the full stack (nginx + backend + SQLite) behind `docker compose`:
+
+```sh
+./scripts/deploy.sh
+```
+
+The deploy uses `compose.yml` (production images) and a server-side `.env`. The live app is served on http://127.0.0.1:8083. Docker is used for deployment only; local development runs via `pnpm`, as above.
 
 ## Architecture
 

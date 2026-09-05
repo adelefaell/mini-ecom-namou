@@ -30,27 +30,33 @@ export function getOrderById(id: number): OrderDto | null {
   }
 }
 
-export function placeOrder(userId: number): OrderDto {
-  const cart = db
-    .select({
-      cartItem: cartItems,
-      variant: variants,
-      product: products,
-    })
-    .from(cartItems)
-    .innerJoin(variants, eq(variants.id, cartItems.variantId))
-    .innerJoin(products, eq(products.id, variants.productId))
-    .where(eq(cartItems.userId, userId))
-    .orderBy(asc(cartItems.id))
-    .all()
-
-  if (cart.length === 0) {
-    throw new Error("Cart is empty")
+export class EmptyCartError extends Error {
+  constructor(message = "Cart is empty") {
+    super(message)
   }
+}
 
-  const total = cart.reduce((sum, row) => sum + row.variant.price * row.cartItem.quantity, 0)
-
+export function placeOrder(userId: number): OrderDto {
   const orderId = db.transaction((tx) => {
+    const cart = tx
+      .select({
+        cartItem: cartItems,
+        variant: variants,
+        product: products,
+      })
+      .from(cartItems)
+      .innerJoin(variants, eq(variants.id, cartItems.variantId))
+      .innerJoin(products, eq(products.id, variants.productId))
+      .where(eq(cartItems.userId, userId))
+      .orderBy(asc(cartItems.id))
+      .all()
+
+    if (cart.length === 0) {
+      throw new EmptyCartError()
+    }
+
+    const total = cart.reduce((sum, row) => sum + row.variant.price * row.cartItem.quantity, 0)
+
     const inserted = tx
       .insert(orders)
       .values({ userId, total })

@@ -124,7 +124,7 @@ export function CartSheet({ open, onOpenChange, justAddedName }: CartSheetProps)
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Continue Shopping
           </Button>
-          <Button render={<Link to="/cart" />}>View Cart →</Button>
+          <Button render={<Link to="/cart" onClick={() => onOpenChange(false)} />}>View Cart →</Button>
         </SheetFooter>
 
         <RemoveConfirmDialog
