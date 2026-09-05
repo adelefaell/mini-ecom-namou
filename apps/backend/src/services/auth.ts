@@ -46,7 +46,7 @@ export function cookieOptions() {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: env.NODE_ENV === "production",
+    secure: env.COOKIE_SECURE,
     path: "/",
     maxAge: TOKEN_MAX_AGE_SECONDS,
   }

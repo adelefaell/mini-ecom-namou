@@ -37,6 +37,18 @@ export async function getWishlist(userId: number): Promise<WishlistDto> {
   }
 }
 
+export async function findByUserIdAndId(userId: number, itemId: number) {
+  return db
+    .select({ variantId: wishlistItems.variantId })
+    .from(wishlistItems)
+    .where(and(eq(wishlistItems.id, itemId), eq(wishlistItems.userId, userId)))
+    .get() ?? null
+}
+
+export async function variantExists(id: number) {
+  return db.select({ id: variants.id }).from(variants).where(eq(variants.id, id)).get() != null
+}
+
 export async function addItem(userId: number, variantId: number) {
   const existing = db
     .select({ id: wishlistItems.id })

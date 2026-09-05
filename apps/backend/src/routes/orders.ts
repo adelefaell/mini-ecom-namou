@@ -10,8 +10,11 @@ export async function orderRoutes(app: FastifyInstance) {
       try {
         const order = orderService.placeOrder(request.user!.id)
         return reply.status(201).send(order)
-      } catch {
-        return reply.status(400).send({ error: { message: "Cart is empty" } })
+      } catch (err) {
+        if (err instanceof orderService.EmptyCartError) {
+          return reply.status(400).send({ error: { message: err.message } })
+        }
+        throw err
       }
     })
   })
